@@ -1,49 +1,39 @@
-"use client";
-import { Table,TableBody,TableCell,TableHead,TableHeader,TableRow} from "../../../components/ui/table";
-import {AlertDialog,AlertDialogAction,AlertDialogCancel,AlertDialogContent,AlertDialogDescription,AlertDialogFooter,AlertDialogHeader,AlertDialogTitle} from "../../../components/ui/alert-dialog";
-import { Typography,Stack,IconButton,CircularProgress,Box} from "@mui/material";
-import { useEffect, useState } from "react";
+'use client'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { Typography, Stack, IconButton, CircularProgress, Box } from "@mui/material";
+import { useState } from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Button } from "../../../components/ui/button";
-import { useRouter} from "next/navigation";
-import useRequests from "../../service/request";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 import axios from "axios";
+import useRequests from "@/app/service/request";
 
 interface Product {
-  id:string,
+  id: string;
   name: string;
   description: string;
   price: number | null;
 }
 
-export default function ProductTable() {
+interface ProductTableProps {
+  initialProducts: Product[];
+}
+
+export default function ProductTable({ initialProducts }: ProductTableProps) {
   const endpoints = useRequests();
-  const [loading, setLoading] = useState(true);
-  const [product, setProduct] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    getProduct();
-  }, []);
-
-  const getProduct = async () => {
-    try {
-      const response = await axios.get(endpoints.getAllProducts);
-      setLoading(false);
-      setProduct(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleEditClick = (product:Product) => {
+  const handleEditClick = (product: Product) => {
     router.push(`/product/${product.id}`);
   };
 
-  const handleDeleteClick = (product:Product, event: React.MouseEvent) => {
+  const handleDeleteClick = (product: Product, event: React.MouseEvent) => {
     event.stopPropagation();
     setIsDeleteDialogOpen(true);
     setSelectedProduct(product);
@@ -52,10 +42,8 @@ export default function ProductTable() {
   const handleDeleteConfirm = async () => {
     if (selectedProduct) {
       try {
-        await axios.delete(
-          `${endpoints.deleteProductById}/${selectedProduct.id}`
-        );
-        setProduct(product.filter((p) => p.id !== selectedProduct.id));
+        await axios.delete(`${endpoints.deleteProductById}/${selectedProduct.id}`);
+        setProducts(products.filter((p) => p.id !== selectedProduct.id));
         setIsDeleteDialogOpen(false);
       } catch (error) {
         console.error(error);
@@ -65,14 +53,7 @@ export default function ProductTable() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
       </Box>
     );
@@ -84,7 +65,7 @@ export default function ProductTable() {
         <Typography sx={{ padding: "20px", font: "bold", flexGrow: 1 }}>
           Products
         </Typography>
-        <Button size="sm" onClick={() => router.push("/product/createProduct")}>
+        <Button size="sm" onClick={() => router.push("/ssr/createProduct")}>
           Create Product
         </Button>
       </Stack>
@@ -99,7 +80,7 @@ export default function ProductTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {product.map((product) => (
+          {products.map((product) => (
             <TableRow key={product.id}>
               <TableCell>{product.id}</TableCell>
               <TableCell>{product.name}</TableCell>
@@ -110,10 +91,7 @@ export default function ProductTable() {
                   <IconButton size="small">
                     <EditIcon sx={{ color: "#42a5f5" }} />
                   </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={(event) => handleDeleteClick(product, event)}
-                  >
+                  <IconButton size="small" onClick={(event) => handleDeleteClick(product, event)}>
                     <DeleteIcon sx={{ color: "#ef5350" }} />
                   </IconButton>
                 </Stack>
@@ -122,24 +100,15 @@ export default function ProductTable() {
           ))}
         </TableBody>
       </Table>
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the product.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This will permanently delete the product.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
