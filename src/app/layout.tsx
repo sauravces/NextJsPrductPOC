@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Appbar from "@/components/appbar";
-import Sidebar from "@/components/sidebar";
+import Appbar from "../components/appbar";
+import Sidebar from "../components/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,10 +18,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      
+    <>
+    <html lang="en" >
+      <body className="min-h-screen">
+        <Appbar />
+        <Sidebar />
+        <main className={`ml-64 pt-16 ${inter.className}`}>
           {children}
-        
+          <Toaster />
+        </main>
+      </body>
     </html>
+    </>
   );
 }
